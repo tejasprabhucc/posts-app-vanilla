@@ -1,0 +1,25 @@
+body {
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.container {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 1024px;
+  padding: 10px 20px;
+}
+
+nav {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.post-desc {
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.comments {
+  margin-top: 20px;
+}
