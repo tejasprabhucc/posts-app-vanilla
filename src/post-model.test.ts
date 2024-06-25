@@ -3,6 +3,8 @@ import {
   type Comment,
   PostsManager,
   PostsModel,
+  Subscriber,
+  Publisher,
 } from "./post-model";
 
 const testPosts: Post[] = [
@@ -49,5 +51,32 @@ describe("Model layer tests", () => {
     expect(postsManager.posts).toBe(testPosts);
     postsManager.currentPostIndex = 2;
     expect(postsManager.currentPost()).toBe(testPosts[2]);
+  });
+});
+
+class DummyView implements Subscriber {
+  update(publisher: Publisher): void {
+    console.log("Update called");
+  }
+}
+
+describe("Pub sub testing", () => {
+  test("Update subscriber", () => {
+    const postsManager = new PostsManager();
+    postsManager.posts = testPosts;
+    expect(postsManager).toBeDefined();
+    expect(postsManager.currentPostIndex).toBe(0);
+
+    const dummyView = new DummyView();
+    postsManager.subscribe(dummyView);
+    postsManager.setPosts(testPosts);
+
+    const dummyView2 = new DummyView();
+    postsManager.subscribe(dummyView2);
+
+    const spy = vi.spyOn(dummyView, "update");
+    const spy2 = vi.spyOn(dummyView2, "update");
+    expect(spy.getMockName()).toEqual("update");
+    expect(spy2.getMockName()).toEqual("update");
   });
 });
