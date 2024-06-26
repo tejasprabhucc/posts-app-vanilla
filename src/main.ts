@@ -5,7 +5,8 @@ import { PostsView } from "./posts-view";
 const postView = new PostsView();
 const postsManager = new PostsManager();
 const commentsManager = new CommentsManager();
-const postsController = new Postcontroller(postView, postsManager, commentsManager);
-
-
-
+const postController = new Postcontroller(
+  postView,
+  postsManager,
+  commentsManager
+);

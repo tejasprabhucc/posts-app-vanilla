@@ -110,6 +110,7 @@ export class CommentsManager implements CommentsModel, Publisher {
 
   setCommentsForPost(comments: Comment[], postId: number) {
     this.commentsMap.set(postId, comments);
+    this.setModelStatus("available");
     this.updateSubscriber();
   }
 
