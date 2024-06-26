@@ -1,24 +1,9 @@
-import { CommentsManager, Post, PostsManager, Comment } from "./post-model";
+import { CommentsManager } from "./post-model";
 import { PostsView } from "./posts-view";
 
-export class Postcontroller {
-  constructor(
-    postView: PostsView,
-    postsManager: PostsManager,
-    commentsManager: CommentsManager
-  ) {
-    function handlePrevious(): void {
-      commentsManager.unSubscribe(postView);
-      postsManager.previousPost();
-    }
-
-    function handleNext(): void {
-      commentsManager.unSubscribe(postView);
-      postsManager.nextPost();
-    }
-
+export class CommentController {
+  constructor(postView: PostsView, commentsManager: CommentsManager) {
     const handleViewComments = (): void => {
-      commentsManager.subscribe(postView);
       const currentPost: Post | undefined = postsManager.currentPost();
       if (currentPost) {
         commentsManager.modelStatus = "pending";
@@ -34,10 +19,7 @@ export class Postcontroller {
       }
     };
 
-    postsManager.subscribe(postView);
-
-    postView.nextButton?.addEventListener("click", handleNext);
-    postView.prevButton?.addEventListener("click", handlePrevious);
+    commentsManager.subscribe(postView);
     postView.viewCommentsButton?.addEventListener("click", handleViewComments);
 
     postsManager.modelStatus = "pending";
@@ -52,30 +34,12 @@ export class Postcontroller {
       });
   }
 
-  async fetchPost(): Promise<Post[]> {
-    try {
-      const response = await fetch(
-        "https://jsonplaceholder.typicode.com/posts"
-      );
-      const posts = (await response.json()) as Post[];
-      const delay = (timeout: number) =>
-        new Promise((resolve) => setTimeout(resolve, timeout));
-      await delay(3000);
-      return posts;
-    } catch (err: unknown) {
-      throw new Error("Failed to fetch posts.");
-    }
-  }
-
   async fetchComments(postId: number): Promise<Comment[]> {
     try {
       const response = await fetch(
         `https://jsonplaceholder.typicode.com/posts/${postId}/comments`
       );
       const comments = (await response.json()) as Comment[];
-      const delay = (timeout: number) =>
-        new Promise((resolve) => setTimeout(resolve, timeout));
-      await delay(2000);
       return comments;
     } catch (err: unknown) {
       throw new Error("Failed to fetch comments.");

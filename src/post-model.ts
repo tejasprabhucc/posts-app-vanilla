@@ -103,14 +103,40 @@ export class PostsManager implements PostsModel, Publisher {
   }
 }
 
-export class CommentsManager implements CommentsModel {
-  commentsMap: Map<number, Comment[]> = new Map();
+export class CommentsManager implements CommentsModel, Publisher {
+  public commentsMap: Map<number, Comment[]> = new Map();
+  public subscribers: Subscriber[] = [];
+  modelStatus: ModelStatus = "pending";
 
   setCommentsForPost(comments: Comment[], postId: number) {
     this.commentsMap.set(postId, comments);
+    this.setModelStatus("available");
+    this.updateSubscriber();
   }
 
   getCommentsForPost(postId: number) {
     return this.commentsMap.get(postId);
+  }
+
+  subscribe(subscriber: Subscriber) {
+    if (!this.subscribers.includes(subscriber)) {
+      this.subscribers.push(subscriber);
+    }
+  }
+
+  unSubscribe(subscriber: Subscriber) {
+    this.subscribers = this.subscribers.filter((sub) => sub !== subscriber);
+  }
+
+  updateSubscriber() {
+    this.subscribers.forEach((sub) => sub.update(this));
+  }
+
+  setModelStatus(status: ModelStatus) {
+    this.modelStatus = status;
+  }
+
+  getModelStatus() {
+    return this.modelStatus;
   }
 }
