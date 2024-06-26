@@ -1,14 +1,12 @@
 import "./style.css";
 import "./posts.css";
 
-import {
-  CommentsManager,
-  PostsManager,
-  Publisher,
-  Subscriber,
-} from "./post-model";
+import { CommentsManager, PostsManager } from "./post-model";
+import { Publisher, Subscriber } from "./pub-sub";
 
 export class PostsView implements Subscriber {
+  constainer: HTMLDivElement | null = null;
+  postNumber: HTMLParagraphElement | null = null;
   postTitleElement: HTMLHeadingElement | null = null;
   postDescription: HTMLParagraphElement | null = null;
   prevButton: HTMLButtonElement | null = null;
@@ -19,6 +17,7 @@ export class PostsView implements Subscriber {
   constructor() {
     document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div class="container">
+    <p class="postNumber" data-test="postNumber"></p>
     <section>
       <nav>
         <button data-test="prevButton">Previous</button>
@@ -33,7 +32,8 @@ export class PostsView implements Subscriber {
     </section>
   </div>
 `;
-
+    this.constainer = document.querySelector(".container");
+    this.postNumber = document.querySelector('[data-test="postNumber"]');
     this.postTitleElement = document.querySelector('[data-test="postTitle"]');
     this.postDescription = document.querySelector('[data-test="postDesc"]');
     this.prevButton = document.querySelector('[data-test="prevButton"]');
@@ -52,10 +52,18 @@ export class PostsView implements Subscriber {
   postId: number = 0;
   update(manager: Publisher): void {
     if (manager instanceof PostsManager) {
+      if (this.prevButton) {
+        this.prevButton.disabled = manager.currentPostIndex === 0;
+      }
+      if (this.nextButton) {
+        this.nextButton.disabled =
+          manager.currentPostIndex === manager.posts.length - 1;
+      }
       if (this.commentsList) {
         this.commentsList.innerHTML = "";
       }
-      switch (manager.getModelStatus()) {
+      const status = manager.modelStatus.getModelStatus();
+      switch (status) {
         case "pending": {
           if (this.postTitleElement) {
             this.postTitleElement.textContent = "Loading...";
@@ -68,6 +76,11 @@ export class PostsView implements Subscriber {
         case "available":
           const post = manager.currentPost();
           this.postId = manager.currentPostIndex + 1;
+          if (this.postNumber) {
+            this.postNumber.textContent = `Post ${
+              manager.currentPostIndex + 1
+            } of ${manager.posts.length}`;
+          }
           if (this.postTitleElement) {
             this.postTitleElement.textContent =
               post?.title ?? "title is missing";
@@ -89,25 +102,32 @@ export class PostsView implements Subscriber {
 
     if (manager instanceof CommentsManager) {
       const comments = manager.getCommentsForPost(this.postId);
-      switch (manager.getModelStatus()) {
+      const status = manager.modelStatus.getModelStatus();
+      switch (status) {
         case "pending": {
-          this.commentsList.innerHTML = `<li>
-          <p>Loading...</p></li>`;
+          if (this.commentsList) {
+            this.commentsList.innerHTML = `<li><p>Loading...</p></li>`;
+          }
           break;
         }
         case "available": {
-          this.commentsList.innerHTML = comments
-            ?.map((comment) => {
-              return `<li>
-                <p><b>${comment.name}</b></p>
-                <p>${comment.body}</p></li>`;
-            })
-            .join("");
+          if (this.commentsList) {
+            this.commentsList.innerHTML =
+              comments
+                ?.map((comment) => {
+                  return `<li>
+                  <p><b>${comment.name}</b></p>
+                  <p>${comment.body}</p>
+                </li>`;
+                })
+                .join("") ?? "";
+          }
           break;
         }
         case "failure": {
-          this.commentsList.innerHTML = `<li>
-          <p>Failed to fetch.</p></li>`;
+          if (this.commentsList) {
+            this.commentsList.innerHTML = `<li><p>Failed to fetch.</p></li>`;
+          }
           break;
         }
       }

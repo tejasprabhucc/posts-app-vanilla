@@ -21,15 +21,16 @@ export class Postcontroller {
       commentsManager.subscribe(postView);
       const currentPost: Post | undefined = postsManager.currentPost();
       if (currentPost) {
-        commentsManager.modelStatus = "pending";
+        commentsManager.modelStatus.setModelStatus("pending");
         commentsManager.updateSubscriber();
         this.fetchComments(currentPost.id)
           .then((comments) => {
             commentsManager.setCommentsForPost(comments, currentPost.id);
           })
-          .catch((err: unknown) => {
-            commentsManager.modelStatus = "failure";
+          .catch((err: Error) => {
+            commentsManager.modelStatus.setModelStatus("failure");
             commentsManager.updateSubscriber();
+            console.error(err.message);
           });
       }
     };
@@ -41,15 +42,16 @@ export class Postcontroller {
     postView.prevButton?.addEventListener("click", handlePrevious);
     postView.viewCommentsButton?.addEventListener("click", handleViewComments);
 
-    postsManager.modelStatus = "pending";
+    postsManager.modelStatus.setModelStatus("pending");
     postsManager.updateSubscriber();
     this.fetchPost()
       .then((posts) => {
         postsManager.setPosts(posts);
       })
-      .catch((err: unknown) => {
-        postsManager.modelStatus = "failure";
+      .catch((err: Error) => {
+        postsManager.modelStatus.setModelStatus("failure");
         postsManager.updateSubscriber();
+        console.error(err.message);
       });
   }
 
