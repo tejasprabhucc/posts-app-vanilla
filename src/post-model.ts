@@ -22,6 +22,8 @@ export interface PostsModel {
   posts: Post[];
   currentPostIndex: number;
   currentPost: () => Post | undefined;
+  previousPost: () => void;
+  nextPost: () => void;
 }
 
 export interface CommentsModel {
@@ -33,7 +35,7 @@ export interface CommentsModel {
 export class PostsManager extends Publisher implements PostsModel {
   public currentPostIndex: number = 0;
   public posts: Post[] = [];
-  modelStatus: ModelStatus = new ModelStatus();
+  modelStatus: ModelStatus = new ModelStatus(this);
 
   previousPost(): void {
     if (this.currentPostIndex === 0) {
@@ -60,7 +62,6 @@ export class PostsManager extends Publisher implements PostsModel {
   setPosts(posts: Post[]) {
     this.posts = posts;
     this.modelStatus.setModelStatus("available");
-    this.updateSubscriber();
   }
 
   getPosts() {
@@ -70,12 +71,11 @@ export class PostsManager extends Publisher implements PostsModel {
 
 export class CommentsManager extends Publisher implements CommentsModel {
   public commentsMap: Map<number, Comment[]> = new Map();
-  modelStatus: ModelStatus = new ModelStatus();
+  modelStatus: ModelStatus = new ModelStatus(this);
 
   setCommentsForPost(comments: Comment[], postId: number) {
     this.commentsMap.set(postId, comments);
     this.modelStatus.setModelStatus("available");
-    this.updateSubscriber();
   }
 
   getCommentsForPost(postId: number) {

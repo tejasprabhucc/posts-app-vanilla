@@ -21,17 +21,21 @@ export class Postcontroller {
       commentsManager.subscribe(postView);
       const currentPost: Post | undefined = postsManager.currentPost();
       if (currentPost) {
-        commentsManager.modelStatus.setModelStatus("pending");
-        commentsManager.updateSubscriber();
-        this.fetchComments(currentPost.id)
-          .then((comments) => {
-            commentsManager.setCommentsForPost(comments, currentPost.id);
-          })
-          .catch((err: Error) => {
-            commentsManager.modelStatus.setModelStatus("failure");
-            commentsManager.updateSubscriber();
-            console.error(err.message);
-          });
+        const currentPostId = currentPost.id;
+        if (commentsManager.getCommentsForPost(currentPostId)) {
+          commentsManager.updateSubscriber();
+        } else {
+          commentsManager.modelStatus.setModelStatus("pending");
+          this.fetchComments(currentPost.id)
+            .then((comments) => {
+              console.log("Comments", comments);
+              commentsManager.setCommentsForPost(comments, currentPost.id);
+            })
+            .catch((err: Error) => {
+              commentsManager.modelStatus.setModelStatus("failure");
+              console.error(err.message);
+            });
+        }
       }
     };
 
@@ -50,7 +54,6 @@ export class Postcontroller {
       })
       .catch((err: Error) => {
         postsManager.modelStatus.setModelStatus("failure");
-        postsManager.updateSubscriber();
         console.error(err.message);
       });
   }
@@ -63,7 +66,7 @@ export class Postcontroller {
       const posts = (await response.json()) as Post[];
       const delay = (timeout: number) =>
         new Promise((resolve) => setTimeout(resolve, timeout));
-      await delay(3000);
+      await delay(2000);
       return posts;
     } catch (err: unknown) {
       throw new Error("Failed to fetch posts.");
